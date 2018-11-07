@@ -1,4 +1,4 @@
-import pygame, settings, colors
+import pygame, settings, colors, player, camera
 
 class Game:
     def __init__(self):
@@ -13,6 +13,8 @@ class Game:
 
     def new(self):
         # start a new game
+        self.player = player.Player(5, 5)
+        self.camera = camera.Camera(4000, 4000)
         self.run()
 
     def run(self):
@@ -28,6 +30,8 @@ class Game:
 
     def update(self):
         # game loop update
+        self.camera.update(self.player)
+        self.player.update()
         pass
 
     def events(self):
@@ -57,6 +61,7 @@ class Game:
     def draw(self):
         # game loop draw
         self.screen.fill(colors.DARKGRAY)
+        self.screen.blit(self.player.image, self.player.rect)
         self.draw_grid()
         pygame.display.flip()
 
