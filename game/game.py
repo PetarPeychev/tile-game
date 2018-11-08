@@ -1,22 +1,26 @@
-import pygame, settings, colors, player, camera
+import pygame
+from player import Player
+from camera import Camera
+from settings import *
+from colors import *
 
 class Game:
     def __init__(self):
         # initialize game window, etc
         pygame.init()
         pygame.mixer.init()
-        pygame.display.set_caption(settings.TITLE)
+        pygame.display.set_caption(TITLE)
         self.screen = pygame.display.set_mode(
-            (settings.DISPLAY_WIDTH, settings.DISPLAY_HEIGHT))
+            (DISPLAY_WIDTH, DISPLAY_HEIGHT))
         self.clock = pygame.time.Clock()
         self.running = True
 
     def new(self):
         # start a new game
-        self.player = player.Player(self,
-                                    10 * settings.TILESIZE,
-                                    20 * settings.TILESIZE)
-        self.camera = camera.Camera(4000, 4000)
+        self.player = Player(self,
+                             10 * TILESIZE,
+                             20 * TILESIZE)
+        self.camera = Camera(4000, 4000)
         self.run()
 
     def run(self):
@@ -24,7 +28,7 @@ class Game:
         self.playing = True
         while self.playing:
             # tick clock and store delta time for last frame
-            self.dt = self.clock.tick(settings.FPS) / 1000
+            self.dt = self.clock.tick(FPS) / 1000
 
             self.events()
             self.update()
@@ -47,22 +51,22 @@ class Game:
 
     def draw_grid(self):
         # draw lines on the x axis every TILESIZE pixels
-        for x in range(0, settings.DISPLAY_WIDTH, settings.TILESIZE):
+        for x in range(0, DISPLAY_WIDTH, TILESIZE):
             pygame.draw.line(self.screen,
-                             colors.LIGHTGRAY,
+                             LIGHTGRAY,
                              (x, 0),
-                             (x, settings.DISPLAY_HEIGHT))
+                             (x, DISPLAY_HEIGHT))
 
         # draw lines on the y axis every TILESIZE pixels
-        for y in range(0, settings.DISPLAY_HEIGHT, settings.TILESIZE):
+        for y in range(0, DISPLAY_HEIGHT, TILESIZE):
             pygame.draw.line(self.screen,
-                             colors.LIGHTGRAY,
+                             LIGHTGRAY,
                              (0, y),
-                             (settings.DISPLAY_WIDTH, y))
+                             (DISPLAY_WIDTH, y))
 
     def draw(self):
         # game loop draw
-        self.screen.fill(colors.DARKGRAY)
+        self.screen.fill(DARKGRAY)
         self.screen.blit(self.player.image,
                          self.camera.apply(self.player))
         self.draw_grid()
