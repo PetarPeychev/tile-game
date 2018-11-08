@@ -13,7 +13,9 @@ class Game:
 
     def new(self):
         # start a new game
-        self.player = player.Player(5, 5)
+        self.player = player.Player(self,
+                                    10 * settings.TILESIZE,
+                                    20 * settings.TILESIZE)
         self.camera = camera.Camera(4000, 4000)
         self.run()
 
@@ -22,7 +24,7 @@ class Game:
         self.playing = True
         while self.playing:
             # tick clock and store delta time for last frame
-            self.dt = self.clock.tick(settings.FPS)
+            self.dt = self.clock.tick(settings.FPS) / 1000
 
             self.events()
             self.update()
@@ -61,7 +63,8 @@ class Game:
     def draw(self):
         # game loop draw
         self.screen.fill(colors.DARKGRAY)
-        self.screen.blit(self.player.image, self.player.rect)
+        self.screen.blit(self.player.image,
+                         self.camera.apply(self.player))
         self.draw_grid()
         pygame.display.flip()
 
