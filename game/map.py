@@ -1,6 +1,7 @@
 import pygame
 import automatagen
 import random
+from tile_types import *
 
 class Map:
     def __init__(self, width, height):
@@ -47,11 +48,34 @@ class Map:
 
         # store a cave counter, starting at 2 ** 16
         self.cave_count = 65536
+        self.cave_dict = {}
         # perform floodfill over the map, incrementing the cave counter and
         # using the current count as a tile replacement
         for y in range(0, self.height):
             for x in range(0, self.width):
                 self.floodfill(x, y, 0)
+
+        # put cave ids with less than 64 size in tiny, less than 128 in small
+        tiny_caves = list(filter(lambda x: self.cave_dict[x] < 64, self.cave_dict.keys()))
+        small_caves = list(filter(lambda x: self.cave_dict[x] < 128, self.cave_dict.keys()))
+
+        # iterate over map
+        for y in range(0, self.height):
+            for x in range(0, self.width):
+                type = self.array[y][x]
+                # if cave is tiny, fill it with liquid, dependent on y-level
+                if type in tiny_caves:
+                    liquid = WATER
+                    if y > 64 and y < 196:
+                        liquid = random.choice(LIQUIDS)
+                    elif y > 196:
+                        liquid = LAVA
+                    self.floodfill(x, y, type, replacement_type = liquid)
+                    del self.cave_dict[type]
+                # if cave is small, fill with random secondary tile
+                elif type in small_caves:
+                    self.floodfill(x, y, type, replacement_type = random.choice(SECONDARY_TILES))
+                    del self.cave_dict[type]
 
     def floodfill(self, node_x, node_y, target_type, replacement_type = None):
         # check if the indices are out of range
@@ -67,8 +91,11 @@ class Map:
         if not replacement_type:
             self.cave_count += 1
             replacement_type = self.cave_count
+            self.cave_dict[replacement_type] = 0
         # replace the tile with the new type
         self.array[node_y][node_x] = replacement_type
+        if replacement_type > 65536:
+            self.cave_dict[replacement_type] += 1
         # recurse south
         self.floodfill(node_x,
                        node_y + 1,
@@ -90,7 +117,7 @@ class Map:
                        target_type,
                        replacement_type = replacement_type)
 
-map = Map(24, 20)
+map = Map(36, 20)
 map.generate()
 for arr in map.array:
     for elem in arr:
@@ -100,3 +127,4 @@ for arr in map.array:
             print('   ', end = '')
     print('')
 print(map.array)
+print(map.cave_dict)
