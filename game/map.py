@@ -34,12 +34,45 @@ class Map:
                     if count >= 5 and random.random() > 0.2:
                         self.array[y][x] = 1
 
-map = Map(56, 44)
+        self.cave_count = 65536
+        for y in range(0, self.height):
+            for x in range(0, self.width):
+                self.floodfill(x, y, 0)
+
+    def floodfill(self, node_x, node_y, target_type, replacement_type = None):
+        if node_x not in range(0, self.width) or node_y not in range(0, self.height):
+            return
+        node_type = self.array[node_y][node_x]
+        if node_type != target_type:
+            return
+        if not replacement_type:
+            self.cave_count += 1
+            replacement_type = self.cave_count
+        self.array[node_y][node_x] = replacement_type
+        self.floodfill(node_x,
+                       node_y + 1,
+                       target_type,
+                       replacement_type = replacement_type)
+        self.floodfill(node_x,
+                       node_y - 1,
+                       target_type,
+                       replacement_type = replacement_type)
+        self.floodfill(node_x - 1,
+                       node_y,
+                       target_type,
+                       replacement_type = replacement_type)
+        self.floodfill(node_x + 1,
+                       node_y,
+                       target_type,
+                       replacement_type = replacement_type)
+
+map = Map(24, 20)
 map.generate()
 for arr in map.array:
     for elem in arr:
         if elem == 1:
-            print(' @ ', end = '')
+            print(' □ ', end = '')
         else:
             print('   ', end = '')
     print('')
+print(map.array)
