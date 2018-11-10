@@ -17,6 +17,8 @@ class Game:
 
     def new(self):
         # start a new game
+        self.map = Map(1024, 256)
+        map.generate()
         self.player = Player(self,
                              10 * TILESIZE,
                              20 * TILESIZE)
