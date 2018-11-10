@@ -47,7 +47,7 @@ class Map:
 
         # store a cave counter, starting at 2 ** 16
         self.cave_count = 65536
-        # perform floodfill over the map, incrementing the cave counter random
+        # perform floodfill over the map, incrementing the cave counter and
         # using the current count as a tile replacement
         for y in range(0, self.height):
             for x in range(0, self.width):
