@@ -2,6 +2,10 @@ import pygame
 import automatagen
 import random
 from tile_types import *
+import resource, sys
+from misc_functions import recursionlimit
+import numpy as np
+import matplotlib.pyplot as plt
 
 class Map:
     def __init__(self, width, height):
@@ -50,32 +54,36 @@ class Map:
         self.cave_count = 65536
         self.cave_dict = {}
         # perform floodfill over the map, incrementing the cave counter and
-        # using the current count as a tile replacement
-        for y in range(0, self.height):
-            for x in range(0, self.width):
-                self.floodfill(x, y, 0)
+        # using the current count as a tile replacement, with recursion limit
+        # increased to fill large caves
+        with recursionlimit(16384):
+            for y in range(0, self.height):
+                for x in range(0, self.width):
+                    self.floodfill(x, y, 0)
 
         # put cave ids with less than 64 size in tiny, less than 128 in small
         tiny_caves = list(filter(lambda x: self.cave_dict[x] < 64, self.cave_dict.keys()))
         small_caves = list(filter(lambda x: self.cave_dict[x] < 128, self.cave_dict.keys()))
 
-        # iterate over map
-        for y in range(0, self.height):
-            for x in range(0, self.width):
-                type = self.array[y][x]
-                # if cave is tiny, fill it with liquid, dependent on y-level
-                if type in tiny_caves:
-                    liquid = WATER
-                    if y > 64 and y < 196:
-                        liquid = random.choice(LIQUIDS)
-                    elif y > 196:
-                        liquid = LAVA
-                    self.floodfill(x, y, type, replacement_type = liquid)
-                    del self.cave_dict[type]
-                # if cave is small, fill with random secondary tile
-                elif type in small_caves:
-                    self.floodfill(x, y, type, replacement_type = random.choice(SECONDARY_TILES))
-                    del self.cave_dict[type]
+        # iterate over map with recursion limit increased to floodfill
+        # large caves
+        with recursionlimit(16384):
+            for y in range(0, self.height):
+                for x in range(0, self.width):
+                    type = self.array[y][x]
+                    # if cave is tiny, fill it with liquid, dependent on y-level
+                    if type in tiny_caves:
+                        liquid = WATER
+                        if y > 64 and y < 196:
+                            liquid = random.choice(LIQUIDS)
+                        elif y > 196:
+                            liquid = LAVA
+                        self.floodfill(x, y, type, replacement_type = liquid)
+                        del self.cave_dict[type]
+                    # if cave is small, fill with random secondary tile
+                    elif type in small_caves:
+                        self.floodfill(x, y, type, replacement_type = random.choice(SECONDARY_TILES))
+                        del self.cave_dict[type]
 
     def floodfill(self, node_x, node_y, target_type, replacement_type = None):
         # check if the indices are out of range
@@ -117,14 +125,26 @@ class Map:
                        target_type,
                        replacement_type = replacement_type)
 
-map = Map(36, 20)
-map.generate()
-for arr in map.array:
+mapp = Map(1024, 256)
+mapp.generate()
+for arr in mapp.array:
     for elem in arr:
         if elem == 1:
             print(' □ ', end = '')
         else:
             print('   ', end = '')
     print('')
-print(map.array)
-print(map.cave_dict)
+print(mapp.array)
+print(mapp.cave_dict)
+def normalize(subarr):
+    def norm(x):
+        if x > 255:
+            x = 255
+        else:
+            x = x * 40
+        return x
+    return list(map(norm, subarr))
+maparr = list(map(normalize, mapp.array))
+print(maparr)
+plt.imshow(maparr)
+plt.show()
