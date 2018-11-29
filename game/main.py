@@ -1,3 +1,4 @@
+import pygame
 from game import Game
 
 # instantiate main game object

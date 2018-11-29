@@ -4,17 +4,29 @@ import random
 from tile_types import *
 import resource, sys
 from misc_functions import recursionlimit
-import numpy as np
-import matplotlib.pyplot as plt
+from settings import *
+#import numpy as np
+#import matplotlib.pyplot as plt
 
 class Map:
     def __init__(self, width, height):
         self.width = width
         self.height = height
 
+    def collides_with(self, x, y):
+        tile_x = int(x / TILESIZE)
+        tile_y = int(y / TILESIZE)
+        try:
+            if self.array[tile_y][tile_x] != 1:
+                return False
+            else:
+                return True
+        except:
+            return True
+
     def generate(self):
         # instantiate TerrainGenerator with default settings
-        terrgen = automatagen.TerrainGenerator()
+        terrgen = automatagen.TerrainGenerator(initial_density = 0.55)
         # generate a random terrain half the size of the map
         boolarr = terrgen.generate(int(self.width / 2), int(self.height / 2))
         # store the seed for later use
@@ -125,26 +137,26 @@ class Map:
                        target_type,
                        replacement_type = replacement_type)
 
-mapp = Map(1024, 256)
-mapp.generate()
-for arr in mapp.array:
-    for elem in arr:
-        if elem == 1:
-            print(' □ ', end = '')
-        else:
-            print('   ', end = '')
-    print('')
-print(mapp.array)
-print(mapp.cave_dict)
-def normalize(subarr):
-    def norm(x):
-        if x > 255:
-            x = 255
-        else:
-            x = x * 40
-        return x
-    return list(map(norm, subarr))
-maparr = list(map(normalize, mapp.array))
-print(maparr)
-plt.imshow(maparr)
-plt.show()
+# mapp = Map(256, 64)
+# mapp.generate()
+# for arr in mapp.array:
+#     for elem in arr:
+#         if elem == 1:
+#             print(' □ ', end = '')
+#         else:
+#             print('   ', end = '')
+#     print('')
+# print(mapp.array)
+# print(mapp.cave_dict)
+# def normalize(subarr):
+#     def norm(x):
+#         if x > 255:
+#             x = 255
+#         else:
+#             x = x * 40
+#         return x
+#     return list(map(norm, subarr))
+# maparr = list(map(normalize, mapp.array))
+# print(maparr)
+# plt.imshow(maparr)
+# plt.show()
