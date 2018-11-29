@@ -20,7 +20,7 @@ class Game:
 
     def new(self):
         # start a new game
-        self.map = Map(32, 16)
+        self.map = Map(256, 64)
         self.map.generate()
         # self.map = [
         #     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -40,8 +40,8 @@ class Game:
         #     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         # ]
         self.player = Player(self,
-                             16 * TILESIZE,
-                             24 * TILESIZE)
+                             self.map.spawn_point[0] * TILESIZE,
+                             self.map.spawn_point[1] * TILESIZE)
         self.camera = Camera(4000, 4000)
         self.run()
 

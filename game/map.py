@@ -3,7 +3,6 @@ import automatagen
 import random
 from tile_types import *
 import resource, sys
-from misc_functions import recursionlimit
 from settings import *
 from queue import Queue
 #import numpy as np
@@ -28,6 +27,37 @@ class Map:
     def generate(self):
         self.generate_caves()
         caves = self.floodfill(AIR)
+        self.filter_caves(caves)
+        self.add_border()
+        self.spawn_point = self.find_spawn()
+        print(self.spawn_point)
+
+    def find_spawn(self):
+        for y in range(self.height):
+            for x in range(self.width):
+                if (self.array[y][x] == 0 and
+                    self.array[y][x + 1] and
+                    self.array[y + 1][x] == 0 and
+                    self.array[y + 1][x + 1] == 0 and
+                    self.array[y + 2][x] == 0 and
+                    self.array[y + 2][x + 1] == 0):
+                    return (x, y)
+
+    def add_border(self):
+        for y in range(2):
+            for x in range(self.width):
+                self.array[y][x] = 1
+        for y in range(self.height - 3, self.height):
+            for x in range(self.width):
+                self.array[y][x] = 1
+        for y in range(self.height):
+            for x in range(2):
+                self.array[y][x] = 1
+        for y in range(self.height):
+            for x in range(self.width - 3, self.width):
+                self.array[y][x] = 1
+
+    def filter_caves(self, caves):
         largest_cave = []
         smaller_caves = []
         for cave in caves:
@@ -36,11 +66,15 @@ class Map:
                 largest_cave = cave
             else:
                 smaller_caves.append(cave)
+        for cave in smaller_caves:
+            for coords in cave:
+                (x, y) = coords
+                self.array[y][x] = 1
 
 
     def generate_caves(self):
         # instantiate TerrainGenerator with default settings
-        terrgen = automatagen.TerrainGenerator(initial_density = 0.55)
+        terrgen = automatagen.TerrainGenerator(initial_density = 0.52)
         # generate a random terrain half the size of the map
         boolarr = terrgen.generate(int(self.width / 2), int(self.height / 2))
         # store the seed for later use
