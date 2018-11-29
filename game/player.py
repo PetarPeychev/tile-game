@@ -21,7 +21,7 @@ class Player(pygame.sprite.Sprite):
             self.vx = PLAYER_SPEED
         if keys[pygame.K_SPACE] or keys[pygame.K_w] or keys[pygame.K_UP]:
             if not self.is_floating():
-                self.vy = TILESIZE * -20
+                self.vy = -PLAYER_JUMP
 
     def move(self, dx = 0, dy = 0):
         player_top = int((self.rect.top) / TILESIZE)
@@ -94,16 +94,37 @@ class Player(pygame.sprite.Sprite):
         if dy > 0:
             self.rect.y += min(dy, distance_bottom)
         elif dy < 0:
-            self.rect.y -= min(-dy, distance_top)
+            if distance_top <= 0:
+                self.vy = -0.5 * self.vy
+            else:
+                self.rect.y -= min(-dy, distance_top)
 
     def is_floating(self):
-        tile_x = int(self.rect.x / TILESIZE)
-        tile_y = int(self.rect.y / TILESIZE)
-        try:
-            if self.game.map.array[tile_y + 3][tile_x] != 1 and self.game.map.array[tile_y + 3][tile_x + 1] != 1:
-                return True
-        except:
+        player_top = int((self.rect.top) / TILESIZE)
+        player_bottom = int((self.rect.bottom - 1) / TILESIZE)
+        player_left = int((self.rect.left) / TILESIZE)
+        player_right = int((self.rect.right - 1) / TILESIZE)
+
+        distance_bottom = self.game.map.width
+
+        for col in range(player_left, player_right + 1):
+            for row in range(player_bottom + 1, self.game.map.height):
+                try:
+                    if self.game.map.array[row][col] in COLLIDABLES:
+                        new_distance_bottom = row * TILESIZE - self.rect.bottom
+                        if new_distance_bottom < distance_bottom:
+                            distance_bottom = new_distance_bottom
+                        break
+                    else:
+                        new_distance_bottom = self.game.map.height * TILESIZE - self.rect.bottom
+                except: new_distance_bottom = self.game.map.height * TILESIZE - self.rect.bottom
+                if new_distance_bottom < distance_bottom:
+                    distance_bottom = new_distance_bottom
+
+        if distance_bottom == 0:
             return False
+        else:
+            return True
 
     def get_gravity(self):
         if self.is_floating() and self.vy < GRAV_ACC:
