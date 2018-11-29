@@ -71,21 +71,6 @@ class Game:
                     self.playing = False
                 self.running = False
 
-    def draw_grid(self):
-        # draw lines on the x axis every TILESIZE pixels
-        for x in range(0, DISPLAY_WIDTH, TILESIZE):
-            pygame.draw.line(self.screen,
-                             LIGHTGRAY,
-                             (x, 0),
-                             (x, DISPLAY_HEIGHT))
-
-        # draw lines on the y axis every TILESIZE pixels
-        for y in range(0, DISPLAY_HEIGHT, TILESIZE):
-            pygame.draw.line(self.screen,
-                             LIGHTGRAY,
-                             (0, y),
-                             (DISPLAY_WIDTH, y))
-
     def draw(self):
         # game loop draw
         self.screen.fill(DARKGRAY)
