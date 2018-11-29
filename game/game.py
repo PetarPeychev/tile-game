@@ -20,7 +20,7 @@ class Game:
 
     def new(self):
         # start a new game
-        self.map = Map(256, 48)
+        self.map = Map(32, 16)
         self.map.generate()
         # self.map = [
         #     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],

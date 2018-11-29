@@ -5,6 +5,7 @@ from tile_types import *
 import resource, sys
 from misc_functions import recursionlimit
 from settings import *
+from queue import Queue
 #import numpy as np
 #import matplotlib.pyplot as plt
 
@@ -25,6 +26,19 @@ class Map:
             return True
 
     def generate(self):
+        self.generate_caves()
+        caves = self.floodfill(AIR)
+        largest_cave = []
+        smaller_caves = []
+        for cave in caves:
+            if len(cave) > len(largest_cave):
+                smaller_caves.append(largest_cave)
+                largest_cave = cave
+            else:
+                smaller_caves.append(cave)
+
+
+    def generate_caves(self):
         # instantiate TerrainGenerator with default settings
         terrgen = automatagen.TerrainGenerator(initial_density = 0.55)
         # generate a random terrain half the size of the map
@@ -62,80 +76,46 @@ class Map:
                     if count >= 5 and random.random() > 0.2:
                         self.array[y][x] = 1
 
-        # store a cave counter, starting at 2 ** 16
-        self.cave_count = 65536
-        self.cave_dict = {}
-        # perform floodfill over the map, incrementing the cave counter and
-        # using the current count as a tile replacement, with recursion limit
-        # increased to fill large caves
-        with recursionlimit(16384):
-            for y in range(0, self.height):
-                for x in range(0, self.width):
-                    self.floodfill(x, y, 0)
+    def check_node_validity(self, x, y, target_type, visited_list):
+        if x not in range(self.width) or y not in range(self.height):
+            return False
+        else:
+            if self.array[y][x] == target_type and (x, y) not in visited_list:
+                return True
+            else:
+                return False
 
-        # put cave ids with less than 64 size in tiny, less than 128 in small
-        tiny_caves = list(filter(lambda x: self.cave_dict[x] < 64, self.cave_dict.keys()))
-        small_caves = list(filter(lambda x: self.cave_dict[x] < 128, self.cave_dict.keys()))
+    def floodfill(self, target_type):
+        # goes through map and stores a list of lists of tuple coordinates (list of caves)
+        # and returns them, effectively storing all caves on the map, using BFS floodfill
+        cave_list = []
+        visited_list = []
+        for y in range(self.height):
+            for x in range(self.width):
+                if self.check_node_validity(x, y, target_type, visited_list):
+                    current_cave = []
+                    q = Queue()
+                    q.put((x, y))
+                    visited_list.append((x, y))
+                    while not q.empty():
+                        (x1, y1) = q.get()
+                        current_cave.append((x1, y1))
+                        visited_list.append((x1, y1))
 
-        # iterate over map with recursion limit increased to floodfill
-        # large caves
-        with recursionlimit(16384):
-            for y in range(0, self.height):
-                for x in range(0, self.width):
-                    type = self.array[y][x]
-                    # if cave is tiny, fill it with liquid, dependent on y-level
-                    if type in tiny_caves:
-                        liquid = WATER
-                        if y > 64 and y < 196:
-                            liquid = random.choice(LIQUIDS)
-                        elif y > 196:
-                            liquid = LAVA
-                        self.floodfill(x, y, type, replacement_type = liquid)
-                        del self.cave_dict[type]
-                    # if cave is small, fill with random secondary tile
-                    elif type in small_caves:
-                        self.floodfill(x, y, type, replacement_type = random.choice(SECONDARY_TILES))
-                        del self.cave_dict[type]
-
-    def floodfill(self, node_x, node_y, target_type, replacement_type = None):
-        # check if the indices are out of range
-        if node_x not in range(0, self.width) or node_y not in range(0, self.height):
-            return
-        # store the type of the tile
-        node_type = self.array[node_y][node_x]
-        # if the tile is not empty, stop recursion
-        if node_type != target_type:
-            return
-        # if this is the first tile of a new cave,
-        # increment the cave counter and use the new number as type
-        if not replacement_type:
-            self.cave_count += 1
-            replacement_type = self.cave_count
-            self.cave_dict[replacement_type] = 0
-        # replace the tile with the new type
-        self.array[node_y][node_x] = replacement_type
-        if replacement_type > 65536:
-            self.cave_dict[replacement_type] += 1
-        # recurse south
-        self.floodfill(node_x,
-                       node_y + 1,
-                       target_type,
-                       replacement_type = replacement_type)
-        # recurse north
-        self.floodfill(node_x,
-                       node_y - 1,
-                       target_type,
-                       replacement_type = replacement_type)
-        # recurse west
-        self.floodfill(node_x - 1,
-                       node_y,
-                       target_type,
-                       replacement_type = replacement_type)
-        # recurse east
-        self.floodfill(node_x + 1,
-                       node_y,
-                       target_type,
-                       replacement_type = replacement_type)
+                        if (self.check_node_validity(x1 + 1, y1, target_type, visited_list)):
+                            q.put((x1 + 1, y1))
+                            visited_list.append((x1 + 1, y1))
+                        if (self.check_node_validity(x1 - 1, y1, target_type, visited_list)):
+                            q.put((x1 - 1, y1))
+                            visited_list.append((x1 - 1, y1))
+                        if (self.check_node_validity(x1, y1 + 1, target_type, visited_list)):
+                            q.put((x1, y1 + 1))
+                            visited_list.append((x1, y1 + 1))
+                        if (self.check_node_validity(x1, y1 - 1, target_type, visited_list)):
+                            q.put((x1, y1 - 1))
+                            visited_list.append((x1, y1 - 1))
+                    cave_list.append(current_cave)
+        return cave_list
 
 # mapp = Map(256, 64)
 # mapp.generate()
