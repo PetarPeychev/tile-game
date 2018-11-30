@@ -30,7 +30,8 @@ class Map:
         self.filter_caves(caves)
         self.add_border()
         self.spawn_point = self.find_spawn()
-        print(self.spawn_point)
+        print("Spawn Point:", self.spawn_point)
+        print("Map Seed:", self.seed)
 
     def find_spawn(self):
         for y in range(self.height):

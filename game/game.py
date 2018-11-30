@@ -1,5 +1,4 @@
 import pygame
-import pygame.freetype
 from player import Player
 from camera import Camera
 from settings import *
@@ -20,7 +19,7 @@ class Game:
 
     def new(self):
         # start a new game
-        self.map = Map(256, 64)
+        self.map = Map(128, 64)
         self.map.generate()
         self.player = Player(self,
                              self.map.spawn_point[0] * TILESIZE,
@@ -57,12 +56,9 @@ class Game:
     def draw(self):
         # game loop draw
         self.screen.fill(DARKGRAY)
-        for row in range(len(self.map.array)):
-            for col in range(len(self.map.array[row])):
-                if self.map.array[row][col] == 1:
-                    tile = Tile(self, TILESIZE * col, TILESIZE * row, True)
-                else:
-                    tile = Tile(self, TILESIZE * col, TILESIZE * row, False)
+        for row in range(self.map.height):
+            for col in range(self.map.width):
+                tile = Tile(self, TILESIZE * col, TILESIZE * row, self.map.array[row][col])
                 self.screen.blit(tile.image, self.camera.apply(tile))
         self.screen.blit(self.player.image, self.camera.apply(self.player))
         pygame.display.flip()
@@ -74,22 +70,25 @@ class Game:
 
     def show_splash_screen(self):
         self.clock.tick(FPS)
-        self.draw_text()
+        self.screen.fill(LIGHTGRAY)
+        self.draw_text(TITLE, 128, y = DISPLAY_HEIGHT / 4)
+        self.draw_text("Press Any Key to Start", 48, x = DISPLAY_WIDTH * 0.05, y = DISPLAY_HEIGHT * 7 / 8)
+        pygame.display.flip()
         self.wait_for_key()
-        pass
 
-    def draw_text(self):
-        pass
+    def draw_text(self, text, size, x = None, y = (DISPLAY_HEIGHT / 4)):
+        f = pygame.font.Font("fonts/SF_Archery_Black.ttf", size)
+        surf = f.render(text, True, BLACK)
+        if not x:
+            x = DISPLAY_WIDTH / 2 - surf.get_width() / 2
+        self.screen.blit(surf, (x, y))
 
     def wait_for_key(self):
         waiting = True
         while waiting:
-            self.screen.fill(LIGHTGRAY)
-            self.draw_text()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     waiting = False
                     self.running = False
                 if event.type == pygame.KEYUP:
                     waiting = False
-            pygame.display.flip()

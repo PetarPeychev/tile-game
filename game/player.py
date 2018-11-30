@@ -22,6 +22,8 @@ class Player(pygame.sprite.Sprite):
         if keys[pygame.K_SPACE] or keys[pygame.K_w] or keys[pygame.K_UP]:
             if not self.is_floating():
                 self.vy = -PLAYER_JUMP
+        if keys[pygame.K_e]:
+            self.throw_hook(pygame.mouse.get_pos())
 
     def move(self, dx = 0, dy = 0):
         player_top = int((self.rect.top) / TILESIZE)
@@ -87,10 +89,23 @@ class Player(pygame.sprite.Sprite):
                     distance_top = new_distance_top
 
         if dx > 0:
+            # if (not self.is_floating() and
+            #     self.game.map.array[player_bottom - 1][player_right + 1] == 0 and
+            #     self.game.map.array[player_bottom][player_right + 1] == 1):
+            #     self.rect.y -= TILESIZE
+            #     self.rect.x += dx
+            # else:
+            #     self.rect.x += min(dx, distance_right)
             self.rect.x += min(dx, distance_right)
         elif dx < 0:
+            # if (not self.is_floating() and
+            #     self.game.map.array[player_bottom - 1][player_left - 1] == 0 and
+            #     self.game.map.array[player_bottom][player_left - 1] == 1):
+            #     self.rect.y -= TILESIZE
+            #     self.rect.x += dx
+            # else:
+            #     self.rect.x -= min(-dx, distance_left)
             self.rect.x -= min(-dx, distance_left)
-
         if dy > 0:
             self.rect.y += min(dy, distance_bottom)
         elif dy < 0:
@@ -171,6 +186,11 @@ class Player(pygame.sprite.Sprite):
                                             self.rect.y + 2.5 * TILESIZE):
             return True
         return False
+
+    def throw_hook(self, rel_pos):
+        (camera_x, camera_y) = self.game.camera.camera.topleft
+        (abs_x, abs_y) = (rel_pos[0] - camera_x, rel_pos[1] - camera_y)
+        print(abs_x, abs_y)
 
     def update(self):
         self.get_user_movement()
