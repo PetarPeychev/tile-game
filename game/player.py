@@ -144,6 +144,8 @@ class Player(pygame.sprite.Sprite):
     def get_gravity(self):
         if self.is_floating() and self.vy < GRAV_ACC:
             self.vy += GRAV_ACC * self.game.dt
+        elif not self.is_floating() and self.vy > 0:
+            self.vy = 0
 
     def top_collides_map(self):
         if self.game.map.collides_with(self.rect.x + 0.5 * TILESIZE,
